@@ -10,11 +10,11 @@ const handleDrop = (event: DragEvent<HTMLUListElement>, setItems) => {
   const positionOriginList = +event.dataTransfer.getData("positionList");
   const positionTargetList = +event.target.dataset.positionList;
 
-  // console.log("event.target.dataset", event.target.dataset);
-  // console.log("positionTarget", positionTarget);
-  // console.log("positionOrigin", positionOrigin);
-  // console.log("positionTargetList", positionTargetList);
-  // console.log("positionOriginList", positionOriginList);
+  console.log("event.target.dataset", event.target.dataset);
+  console.log("positionTarget", positionTarget);
+  console.log("positionOrigin", positionOrigin);
+  console.log("positionTargetList", positionTargetList);
+  console.log("positionOriginList", positionOriginList);
 
   setItems((items) => {
     const newItems = [...items];
@@ -32,6 +32,15 @@ const handleDragOver: DragEventHandler = (event: DragEvent) => {
   event.preventDefault();
 };
 
+const handleOnClick = (event, positionList, setBoard) => {
+  setBoard((board) => {
+    const newBoard = [...board];
+    // @todo Create unique ids
+    newBoard[positionList].push({ id: 5, name: "Item 6" });
+    return newBoard;
+  });
+};
+
 export const Board = ({ items }) => {
   const [board, setBoard] = useState(items);
   return (
@@ -46,6 +55,9 @@ export const Board = ({ items }) => {
             {item.name}
           </Item>
         ))}
+        <button onClick={(event) => handleOnClick(event, 0, setBoard)}>
+          Add item
+        </button>
       </ul>
       <ul
         className={`m-10`}
@@ -57,6 +69,9 @@ export const Board = ({ items }) => {
             {item.name}
           </Item>
         ))}
+        <button onClick={(event) => handleOnClick(event, 1, setBoard)}>
+          Add item
+        </button>
       </ul>
     </div>
   );
