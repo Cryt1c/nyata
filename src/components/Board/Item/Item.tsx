@@ -9,15 +9,23 @@ const handleDragStart = (e, positionItem, positionList) => {
 
 // https://codesandbox.io/s/framer-motion-drag-to-reorder-pkm1k?file=/src/Example.tsx:1479-1525
 export const Item = ({ children, positionItem, positionList }) => {
+  const [text, setText] = useState(children);
   return (
     <li
       draggable
       onDragStart={(e) => handleDragStart(e, positionItem, positionList)}
-      className={`p-5 border-black border-solid border-1`}
+      className={`p-5 border-2`}
       data-position-item={positionItem}
       data-position-list={positionList}
     >
-      {children}
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        // @todo: Find another solution
+        data-position-item={positionItem}
+        data-position-list={positionList}
+      />
     </li>
   );
 };
