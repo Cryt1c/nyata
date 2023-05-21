@@ -1,5 +1,6 @@
 import { DragEvent, DragEventHandler } from "react";
 import { Item } from "../Item";
+import { getHighestIdonBoard } from "./utils/list";
 
 const handleDrop = (event: DragEvent<HTMLUListElement>, setItems) => {
   const positionOrigin = +event.dataTransfer.getData("positionItem");
@@ -33,15 +34,8 @@ const handleDragOver: DragEventHandler = (event: DragEvent) => {
 const handleOnClick = (event, positionList, setBoard) => {
   setBoard((board) => {
     const newBoard = [...board];
-
-    // @todo Create unique ids
-    // const result = board.reduce((outerAcc, outerItem) => {
-    //   list.reduce((innerAcc, innerItem) => if (innerItem.id > innerAcc) innerItem.id, 0);
-    //   if (outerItem.id > outerAcc) outerItem.id, 0);
-    //
-    // console.log("result", result);
-
-    newBoard[positionList].push({ id: board.length, name: `${board.length}` });
+    const newId = getHighestIdonBoard(board) + 1;
+    newBoard[positionList].push({ id: newId, name: `Item ${board.length}` });
     return newBoard;
   });
 };
