@@ -9,11 +9,11 @@ const handleDrop = (event: DragEvent<HTMLUListElement>, setItems) => {
   const positionOriginList = +event.dataTransfer.getData("positionList");
   const positionTargetList = +event.target.dataset.positionList;
 
-  console.log("event.target.dataset", event.target.dataset);
-  console.log("positionTarget", positionTarget);
-  console.log("positionOrigin", positionOrigin);
-  console.log("positionTargetList", positionTargetList);
-  console.log("positionOriginList", positionOriginList);
+  // console.log("event.target.dataset", event.target.dataset);
+  // console.log("positionTarget", positionTarget);
+  // console.log("positionOrigin", positionOrigin);
+  // console.log("positionTargetList", positionTargetList);
+  // console.log("positionOriginList", positionOriginList);
 
   setItems((items) => {
     const newItems = [...items];
@@ -35,7 +35,7 @@ const handleOnClick = (event, positionList, setBoard) => {
   setBoard((board) => {
     const newBoard = [...board];
     const newId = getHighestIdonBoard(board) + 1;
-    newBoard[positionList].push({ id: newId, name: `Item ${board.length}` });
+    newBoard[positionList].push({ id: newId, name: `Item ${newId + 1}` });
     return newBoard;
   });
 };
