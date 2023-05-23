@@ -40,6 +40,15 @@ const handleOnClick = (event, positionList, setBoard) => {
   });
 };
 
+const handleItemTextChange = (event, positionItem, positionList, setBoard) => {
+  const newText = event.target.value;
+  setBoard((board) => {
+    const newBoard = [...board];
+    newBoard[positionList][positionItem].name = newText;
+    return newBoard;
+  });
+};
+
 export const List = ({ positionList, board, setBoard }) => {
   return (
     <ul
@@ -48,7 +57,15 @@ export const List = ({ positionList, board, setBoard }) => {
       onDragOver={handleDragOver}
     >
       {board[positionList].map((item, index) => (
-        <Item key={item.id} positionItem={index} positionList={positionList}>
+        <Item
+          text={item.name}
+          key={item.id}
+          positionItem={index}
+          positionList={positionList}
+          onChange={(event) =>
+            handleItemTextChange(event, index, positionList, setBoard)
+          }
+        >
           {item.name}
         </Item>
       ))}

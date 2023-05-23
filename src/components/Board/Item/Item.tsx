@@ -7,9 +7,7 @@ const handleDragStart = (e, positionItem, positionList) => {
   event.dataTransfer.setData("positionList", positionList);
 };
 
-// https://codesandbox.io/s/framer-motion-drag-to-reorder-pkm1k?file=/src/Example.tsx:1479-1525
-export const Item = ({ children, positionItem, positionList }) => {
-  const [text, setText] = useState(children);
+export const Item = ({ text, positionItem, positionList, onChange }) => {
   return (
     <li
       draggable
@@ -21,7 +19,7 @@ export const Item = ({ children, positionItem, positionList }) => {
       <input
         type="text"
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={onChange}
         // @todo: Find another solution
         data-position-item={positionItem}
         data-position-list={positionList}
