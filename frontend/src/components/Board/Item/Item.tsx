@@ -7,7 +7,7 @@ const handleDragStart = (e, positionItem, positionList) => {
   event.dataTransfer.setData("positionList", positionList);
 };
 
-export const Item = ({ text, positionItem, positionList, onChange }) => {
+export const Item = ({ text, positionItem, positionList, onChange, selected }) => {
   return (
     <li
       draggable
@@ -15,6 +15,7 @@ export const Item = ({ text, positionItem, positionList, onChange }) => {
       className={`p-5 border-2`}
       data-position-item={positionItem}
       data-position-list={positionList}
+      style={{ backgroundColor: selected ? "red" : "white" }}
     >
       <input
         type="text"

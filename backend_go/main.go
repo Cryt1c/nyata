@@ -15,8 +15,19 @@ type Todo struct {
 }
 
 var idCounter int32 = 0
-var todo = Todo{Id: 0, Completed: false, Name: "Do dishes"}
-var todos = []Todo{todo}
+
+var todos = [][]Todo{
+	{
+		{Id: 0, Completed: false, Name: "Do dishes"},
+		{Id: 1, Completed: false, Name: "Do laundry"},
+		{Id: 2, Completed: false, Name: "Do homework"},
+	},
+	{
+		{Id: 3, Completed: false, Name: "Do homework"},
+		{Id: 4, Completed: false, Name: "Do homework"},
+		{Id: 5, Completed: false, Name: "Do homework"},
+	},
+}
 
 func main() {
 	http.HandleFunc("/todos", readTodos)
@@ -29,6 +40,7 @@ func readTodos(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
+	enableCors(&w)
 
 	json, _ := json.Marshal(todos)
 	w.Write([]byte(json))
@@ -39,6 +51,7 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
+	enableCors(&w)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -56,7 +69,8 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 
 	// assign an id to the todo
 	todo.Id = int(atomic.AddInt32(&idCounter, 1))
-	todos = append(todos, todo)	
+	// TODO: Take list and position for todo.
+	todos = append(todos, []Todo{todo})
 
 	fmt.Printf("Received a new todo: %+v\n", todo)
 
@@ -64,4 +78,8 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(todo)
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }

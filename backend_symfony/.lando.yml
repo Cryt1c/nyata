@@ -1,0 +1,4 @@
+name: nyata
+recipe: symfony
+config:
+  webroot: public

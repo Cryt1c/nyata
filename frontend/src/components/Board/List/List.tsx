@@ -49,7 +49,7 @@ const handleItemTextChange = (event, positionItem, positionList, setBoard) => {
   });
 };
 
-export const List = ({ positionList, board, setBoard }) => {
+export const List = ({ positionList, board, setBoard, selection }) => {
   return (
     <ul
       className={`m-10`}
@@ -65,13 +65,15 @@ export const List = ({ positionList, board, setBoard }) => {
           onChange={(event) =>
             handleItemTextChange(event, index, positionList, setBoard)
           }
+          selected={selection.x == positionList && selection.y == index }
         >
-          {item.name}
-        </Item>
-      ))}
-      <button onClick={(event) => handleOnClick(event, positionList, setBoard)}>
-        Add item
-      </button>
-    </ul>
+      {item.name}
+    </Item>
+  ))
+}
+<button onClick={(event) => handleOnClick(event, positionList, setBoard)}>
+  Add item
+</button>
+    </ul >
   );
 };
