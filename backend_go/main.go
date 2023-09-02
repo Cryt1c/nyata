@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"sync/atomic"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Todo struct {
@@ -19,7 +19,7 @@ type Todo struct {
 }
 
 type todosDB struct {
-	db      *sql.DB
+	db *sql.DB
 }
 
 var idCounter int32 = 0
@@ -68,7 +68,6 @@ func readTodos(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(json))
 }
 
-
 func createTodo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -91,11 +90,40 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// assign an id to the todo
-	todo.Id = int(atomic.AddInt32(&idCounter, 1))
+	// todo.Id = int(atomic.AddInt32(&idCounter, 1))
 	// TODO: Take list and position for todo.
-	todos = append(todos, []Todo{todo})
+	// todos = append(todos, []Todo{todo})
 
-	fmt.Printf("Received a new todo: %+v\n", todo)
+	// We don't care about the returned values, so we're using Exec. If we
+	// wanted to reuse these statements, it would be more efficient to use
+	// prepared statements. Learn more:
+	// https://go.dev/doc/database/prepared-statements
+
+	todosDB, err := openDB()
+	if err != nil {
+		log.Println("Error opening database")
+		log.Println(err)
+		return
+	}
+	defer todosDB.db.Close()
+	result, err := todosDB.db.Exec(
+		"INSERT INTO todos(Name, Completed) VALUES( ?, ?)",
+		todo.Name,
+		todo.Completed,
+	)
+	if err != nil {
+		log.Println("Error inserting todo")
+		log.Println(err)
+		return
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Println("Error retrieving last insert id")
+		log.Println(err)
+		return
+	}
+	log.Println("Inserted ID:", id)
+	todo.Id = int(id)
 
 	// respond with a 201 Created and the created Todo in the body
 	w.Header().Set("Content-Type", "application/json")
