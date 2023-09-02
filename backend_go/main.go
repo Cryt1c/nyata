@@ -1,10 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "github.com/mattn/go-sqlite3"
 	"io"
+	"log"
 	"net/http"
+	"os"
 	"sync/atomic"
 )
 
@@ -12,6 +16,10 @@ type Todo struct {
 	Name      string `json:"name"`
 	Completed bool   `json:"completed"`
 	Id        int    `json:"id"`
+}
+
+type todosDB struct {
+	db      *sql.DB
 }
 
 var idCounter int32 = 0
@@ -41,10 +49,25 @@ func readTodos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	enableCors(&w)
+	todosDB, err := openDB()
+	if err != nil {
+		log.Println("Error opening database")
+		log.Println(err)
+		return
+	}
+	defer todosDB.db.Close()
 
-	json, _ := json.Marshal(todos)
+	todos, err := todosDB.getTodos()
+	if err != nil {
+		log.Println("Error getting todos")
+		log.Println(err)
+		return
+	}
+
+	json, err := json.Marshal(todos)
 	w.Write([]byte(json))
 }
+
 
 func createTodo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -82,4 +105,67 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+func (t *todosDB) getTodos() ([]Todo, error) {
+	var todos []Todo
+	rows, err := t.db.Query("SELECT * FROM todos")
+	if err != nil {
+		return todos, fmt.Errorf("unable to get values: %w", err)
+	}
+	for rows.Next() {
+		var todo Todo
+		err = rows.Scan(
+			&todo.Id,
+			&todo.Name,
+			&todo.Completed,
+		)
+		if err != nil {
+			return todos, err
+		}
+		todos = append(todos, todo)
+	}
+	return todos, err
+}
+
+// openDB opens a SQLite database and stores that database in our special spot.
+func openDB() (*todosDB, error) {
+	db, err := sql.Open("sqlite3", "./todos.db")
+	if err != nil {
+		log.Println("Error opening database")
+		log.Println(err)
+		return nil, err
+	}
+	log.Println("Opened database")
+	t := todosDB{db}
+	log.Println("Checking if table exists")
+	if !t.tableExists("todos") {
+		err := t.createTable()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &t, nil
+}
+
+func (t *todosDB) tableExists(name string) bool {
+	if _, err := t.db.Query("SELECT * FROM todos"); err == nil {
+		return true
+	}
+	return false
+}
+
+func (t *todosDB) createTable() error {
+	_, err := t.db.Exec(`CREATE TABLE "todos" ( "id" INTEGER, "name" TEXT NOT NULL, "project" TEXT, "status" TEXT, "created" DATETIME, PRIMARY KEY("id" AUTOINCREMENT))`)
+	return err
+}
+
+func initTodosDir(path string) error {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return os.Mkdir(path, 0o770)
+		}
+		return err
+	}
+	return nil
 }
