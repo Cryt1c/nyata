@@ -40,8 +40,24 @@ func (m *TodosModel) GetTodos() ([]Todo, error) {
 	return todos, err
 }
 
-func (m *TodosModel) insertTodo(todo Todo) {
-	
+func (m *TodosModel) InsertTodo(todo Todo) (int64, error) {
+	result, err := m.DB.Exec(
+		"INSERT INTO todos(Name, Completed) VALUES(?, ?)",
+		todo.Name,
+		todo.Completed,
+	)
+	if err != nil {
+		log.Println("Error inserting todo")
+		log.Println(err)
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		log.Println("Error retrieving last insert id")
+		log.Println(err)
+		return 0, err
+	}
+	return id, nil
 }
 
 func (m *TodosModel) tableExists(name string) bool {
@@ -84,12 +100,3 @@ func OpenDB() (*TodosModel, error) {
 	}
 	return &t, nil
 }
-
-func (m *TodosModel) Close() error {
-	return m.DB.Close()
-}
-
-func (m *TodosModel) Exec(query string, args ...interface{}) (sql.Result, error) {
-	return m.DB.Exec(query, args...)
-}
-

@@ -10,8 +10,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var idCounter int32 = 0
-
 type Env struct {
 	todos *models.TodosModel
 }
@@ -23,9 +21,9 @@ func main() {
 		log.Println(err)
 		return
 	}
-	defer todosDB.Close()
 
 	env := &Env{todos: todosDB}
+	defer env.todos.DB.Close()
 
 	http.HandleFunc("/todos", env.readTodos)
 	http.HandleFunc("/todo", env.createTodo)
@@ -71,22 +69,12 @@ func (env *Env) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := env.todos.Exec(
-		"INSERT INTO todos(Name, Completed) VALUES( ?, ?)",
-		todo.Name,
-		todo.Completed,
-	)
+	id, err := env.todos.InsertTodo(todo)
 	if err != nil {
-		log.Println("Error inserting todo")
-		log.Println(err)
+		http.Error(w, "Error inserting todo", http.StatusBadRequest)
 		return
 	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		log.Println("Error retrieving last insert id")
-		log.Println(err)
-		return
-	}
+
 	log.Println("Inserted ID:", id)
 	todo.Id = int(id)
 
