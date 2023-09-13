@@ -2,7 +2,6 @@ package main
 
 import (
 	"cryt1c/nyata/models"
-	"cryt1c/nyata/todosdb"
 	"encoding/json"
 	"io"
 	"log"
@@ -14,11 +13,11 @@ import (
 var idCounter int32 = 0
 
 type Env struct {
-	todosDB *todosdb.TodosDB
+	todos *models.TodosModel
 }
 
 func main() {
-	todosDB, err := todosdb.OpenDB()
+	todosDB, err := models.OpenDB()
 	if err != nil {
 		log.Println("Error opening database")
 		log.Println(err)
@@ -26,7 +25,7 @@ func main() {
 	}
 	defer todosDB.Close()
 
-	env := &Env{todosDB: todosDB}
+	env := &Env{todos: todosDB}
 
 	http.HandleFunc("/todos", env.readTodos)
 	http.HandleFunc("/todo", env.createTodo)
@@ -40,7 +39,7 @@ func (env *Env) readTodos(w http.ResponseWriter, r *http.Request) {
 	}
 	enableCors(&w)
 
-	todos, err := env.todosDB.GetTodos()
+	todos, err := env.todos.GetTodos()
 	if err != nil {
 		log.Println("Error getting todos")
 		log.Println(err)
@@ -72,7 +71,7 @@ func (env *Env) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := env.todosDB.Exec(
+	result, err := env.todos.Exec(
 		"INSERT INTO todos(Name, Completed) VALUES( ?, ?)",
 		todo.Name,
 		todo.Completed,
