@@ -13,18 +13,11 @@ import (
 
 var idCounter int32 = 0
 
-func main() {
-	http.HandleFunc("/todos", readTodos)
-	http.HandleFunc("/todo", createTodo)
-	http.ListenAndServe(":8080", nil)
+type Env struct {
+	todosDB *todosdb.TodosDB
 }
 
-func readTodos(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-		return
-	}
-	enableCors(&w)
+func main() {
 	todosDB, err := todosdb.OpenDB()
 	if err != nil {
 		log.Println("Error opening database")
@@ -33,7 +26,21 @@ func readTodos(w http.ResponseWriter, r *http.Request) {
 	}
 	defer todosDB.Close()
 
-	todos, err := todosDB.GetTodos()
+	env := &Env{todosDB: todosDB}
+
+	http.HandleFunc("/todos", env.readTodos)
+	http.HandleFunc("/todo", env.createTodo)
+	http.ListenAndServe(":8080", nil)
+}
+
+func (env *Env) readTodos(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+	enableCors(&w)
+
+	todos, err := env.todosDB.GetTodos()
 	if err != nil {
 		log.Println("Error getting todos")
 		log.Println(err)
@@ -44,7 +51,7 @@ func readTodos(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(json))
 }
 
-func createTodo(w http.ResponseWriter, r *http.Request) {
+func (env *Env) createTodo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -65,14 +72,7 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	todosDB, err := todosdb.OpenDB()
-	if err != nil {
-		log.Println("Error opening database")
-		log.Println(err)
-		return
-	}
-	defer todosDB.Close()
-	result, err := todosDB.Exec(
+	result, err := env.todosDB.Exec(
 		"INSERT INTO todos(Name, Completed) VALUES( ?, ?)",
 		todo.Name,
 		todo.Completed,
@@ -100,5 +100,3 @@ func createTodo(w http.ResponseWriter, r *http.Request) {
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
-
-
