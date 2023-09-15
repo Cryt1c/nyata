@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  DragEvent,
-  DragEventHandler,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { Item } from "@/components/Board/Item";
+import { DragEvent, useMemo, useState } from "react";
 import { List } from "./List";
 import { useSelection } from "@/hooks/useSelection";
 
