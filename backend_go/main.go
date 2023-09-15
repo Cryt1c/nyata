@@ -6,8 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 type Env struct {
@@ -15,7 +13,7 @@ type Env struct {
 }
 
 func main() {
-	todosDB, err := models.OpenDB()
+	todosDB, err := models.OpenDB("./todos.db")
 	if err != nil {
 		log.Println("Error opening database")
 		log.Println(err)
@@ -76,7 +74,7 @@ func (env *Env) createTodo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("Inserted ID:", id)
-	todo.Id = int(id)
+	todo.Id = int64(id)
 
 	// respond with a 201 Created and the created Todo in the body
 	w.Header().Set("Content-Type", "application/json")
