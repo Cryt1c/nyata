@@ -1,6 +1,7 @@
 import { DragEvent, DragEventHandler } from "react";
 import { Item } from "../Item";
 import { getHighestIdonBoard } from "./utils/list";
+import { Todo } from "@/app/page";
 
 const handleDrop = (event: DragEvent<HTMLUListElement>, setItems) => {
   const positionOrigin = +event.dataTransfer.getData("positionItem");
@@ -42,11 +43,19 @@ const handleOnClick = (event, positionList, setBoard) => {
 
 const handleItemTextChange = (event, positionItem, positionList, setBoard) => {
   const newText = event.target.value;
+
   setBoard((board) => {
     const newBoard = [...board];
     newBoard[positionList][positionItem].name = newText;
     return newBoard;
   });
+};
+
+type ListProps = {
+  positionList: number;
+  board: Todo[];
+  setBoard: (board: Todo[]) => void;
+  selection: { x: number; y: number };
 };
 
 export const List = ({ positionList, board, setBoard, selection }) => {
@@ -65,15 +74,14 @@ export const List = ({ positionList, board, setBoard, selection }) => {
           onChange={(event) =>
             handleItemTextChange(event, index, positionList, setBoard)
           }
-          selected={selection.x == positionList && selection.y == index }
+          selected={selection.x == positionList && selection.y == index}
         >
-      {item.name}
-    </Item>
-  ))
-}
-<button onClick={(event) => handleOnClick(event, positionList, setBoard)}>
-  Add item
-</button>
-    </ul >
+          {item.name}
+        </Item>
+      ))}
+      <button onClick={(event) => handleOnClick(event, positionList, setBoard)}>
+        Add item
+      </button>
+    </ul>
   );
 };

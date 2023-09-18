@@ -3,9 +3,13 @@
 import { DragEvent, useMemo, useState } from "react";
 import { List } from "./List";
 import { useSelection } from "@/hooks/useSelection";
+import { Todo } from "@/app/page";
 
-export const Board = ({ items }) => {
-  const [board, setBoard] = useState(items);
+type BoardProps = {
+  items: Todo[];
+};
+export const Board = ({ items }: BoardProps) => {
+  const [board, setBoard] = useState<Todo[]>(items);
   const boardLimits = useMemo(() => {
     return board.map((list) => list.length);
   }, [board]);
