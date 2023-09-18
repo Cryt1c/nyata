@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var todosDb *models.TodosModel
+var todosDb *models.TodosDB
 
 func TestMain(m *testing.M) {
 	// os.Exit skips defer calls

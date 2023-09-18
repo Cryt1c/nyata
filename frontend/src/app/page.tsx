@@ -1,5 +1,12 @@
 import { Board } from "@/components/Board";
 
+export type Todo = {
+  id: number;
+  name: string;
+  listId: number;
+  positionId: number;
+};
+
 const getTodos = async () => {
   const response = await fetch("http://localhost:8080/todos");
 
@@ -7,7 +14,7 @@ const getTodos = async () => {
     throw new Error("Error getting todos");
   }
 
-  let items = response.json();
+  let items: Todo[] = response.json();
   // items = [
   //   { id: 0, name: "Item 1", listId: 0, positionId: 0 },
   //   { id: 1, name: "Item 2", listId: 0, positionId: 1 },
@@ -18,21 +25,9 @@ const getTodos = async () => {
   return items;
 };
 
-const normalizeTodos = (items) => {
-  let lists = items.reduce((acc, item) => {
-    if (!acc[item.listId]) {
-      acc[item.listId] = [];
-    }
-    acc[item.listId].push(item);
-    return acc;
-  }, []);
-  return lists;
-};
-
 const Page = async () => {
   let items = await getTodos();
-  let normalizedItems = normalizeTodos(items);
-  return <Board items={normalizedItems} />;
+  return <Board items={items} />;
 };
 
 export default Page;

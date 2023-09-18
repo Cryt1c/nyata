@@ -53,19 +53,26 @@ const handleItemTextChange = (event, positionItem, positionList, setBoard) => {
 
 type ListProps = {
   positionList: number;
+  listItems: Todo[];
   board: Todo[];
   setBoard: (board: Todo[]) => void;
   selection: { x: number; y: number };
 };
 
-export const List = ({ positionList, board, setBoard, selection }) => {
+export const List = ({
+  positionList,
+  listItems,
+  board,
+  setBoard,
+  selection,
+}) => {
   return (
     <ul
       className={`m-10`}
       onDrop={(event) => handleDrop(event, setBoard)}
       onDragOver={handleDragOver}
     >
-      {board[positionList].map((item, index) => (
+      {listItems.map((item, index) => (
         <Item
           text={item.name}
           key={item.id}
