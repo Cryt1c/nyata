@@ -9,7 +9,7 @@ import (
 )
 
 type Env struct {
-	todos *models.TodosModel
+	todos *models.TodosDB
 }
 
 func main() {
