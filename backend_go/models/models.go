@@ -96,25 +96,25 @@ func (m *TodosDB) DeleteTodoById(id int64) (int64, error) {
 	return rowsAffected, nil
 }
 
-func (m *TodosDB) UpdateTodo(todo Todo) (int64, error) {
+func (m *TodosDB) UpdateTodo(todo Todo) (*Todo, error) {
 	result, err := m.DB.Exec("UPDATE todos SET name = ?, completed = ?, position_id = ?, list_id = ? WHERE id = ?", todo.Name, todo.Completed, todo.PositionId, todo.ListId, todo.Id)
 	if err != nil {
 		log.Printf("Error updating todo with ID %d: %v", todo.Id, err)
-		return 0, fmt.Errorf("Failed to update todo with ID %d: %w", todo.Id, err)
+		return nil, fmt.Errorf("Failed to update todo with ID %d: %w", todo.Id, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		log.Printf("Error fetching rows affected after deleting todo with ID %d: %v", todo.Id, err)
-		return 0, fmt.Errorf("Failed to get rows affected after deleting todo with ID %d: %w", todo.Id, err)
+		return nil, fmt.Errorf("Failed to get rows affected after deleting todo with ID %d: %w", todo.Id, err)
 	}
 
 	if rowsAffected == 0 {
 		log.Printf("No todo found with ID %d", todo.Id)
-		return 0, errors.New(fmt.Sprintf("No todo found with ID %d", todo.Id))
+		return nil, errors.New(fmt.Sprintf("No todo found with ID %d", todo.Id))
 	}
 
-	return rowsAffected, nil
+	return &todo, nil
 }
 
 func (m *TodosDB) GetLists() ([]List, error) {

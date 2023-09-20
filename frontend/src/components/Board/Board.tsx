@@ -3,7 +3,7 @@
 import { DragEvent, useMemo, useState } from "react";
 import { List } from "./List";
 import { useSelection } from "@/hooks/useSelection";
-import { Todo } from "@/app/page";
+import { Todo } from "./List/utils/todo";
 
 type BoardProps = {
   items: Todo[];
@@ -21,8 +21,6 @@ export const Board = ({ items }: BoardProps) => {
       }, 0) + 1
     );
   }, [board]);
-  console.log("boardLimits", boardLimits);
-  console.log("listAmount", listAmount);
 
   const handleAccept = (event: DragEvent) => {
     console.log("accept", event);
@@ -35,9 +33,8 @@ export const Board = ({ items }: BoardProps) => {
         const listItems: Todo[] = board.filter((item) => item.listId === index);
         return (
           <List
-            positionList={index}
+            key={index}
             listItems={listItems}
-            board={board}
             setBoard={setBoard}
             selection={selection}
           />

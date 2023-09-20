@@ -23,12 +23,12 @@ func main() {
 	env := &Env{todos: todosDB}
 	defer env.todos.DB.Close()
 
-	http.HandleFunc("/todos", env.readTodos)
-	http.HandleFunc("/todo", env.createTodo)
+	http.HandleFunc("/todos", env.todoHandler)
+	http.HandleFunc("/todo", env.todosHandler)
 	http.ListenAndServe(":8080", nil)
 }
 
-func (env *Env) readTodos(w http.ResponseWriter, r *http.Request) {
+func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -46,8 +46,8 @@ func (env *Env) readTodos(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(json))
 }
 
-func (env *Env) createTodo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -67,19 +67,51 @@ func (env *Env) createTodo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := env.todos.InsertTodo(todo)
-	if err != nil {
-		http.Error(w, "Error inserting todo", http.StatusBadRequest)
+	var returnedTodo models.Todo
+	switch r.Method {
+	case http.MethodPost:
+		returnedTodo, err = env.insertTodoHandler(w, todo)
+		if err != nil {
+			return
+		}
+	case http.MethodPut:
+		returnedTodo, err = env.updateTodoHandler(w, todo)
+		if err != nil {
+			return
+		}
+	default:
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	log.Println("Inserted ID:", id)
-	todo.Id = int64(id)
-
 	// respond with a 201 Created and the created Todo in the body
 	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(returnedTodo)
+}
+
+func (env *Env) insertTodoHandler(w http.ResponseWriter, todo models.Todo) (models.Todo, error) {
+	id, err := env.todos.InsertTodo(todo)
+	if err != nil {
+		http.Error(w, "Error inserting todo", http.StatusBadRequest)
+		return todo, err
+	}
+
+	log.Println("Inserted ID:", id)
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(todo)
+	todo.Id = int64(id)
+	return todo, nil
+}
+
+func (env *Env) updateTodoHandler(w http.ResponseWriter, todo models.Todo) (models.Todo, error) {
+	_, err := env.todos.UpdateTodo(todo)
+	if err != nil {
+		http.Error(w, "Error updating todo", http.StatusBadRequest)
+		return todo, err
+	}
+
+	log.Println("Updated todo:", todo)
+	w.WriteHeader(http.StatusOK)
+	return todo, nil
 }
 
 func enableCors(w *http.ResponseWriter) {

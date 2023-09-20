@@ -63,7 +63,7 @@ func TestInsert(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	affectedRows, err := todosDb.UpdateTodo(
+	_, err := todosDb.UpdateTodo(
 		models.Todo{
 			Id:         1,
 			Name:       "Update todo",
@@ -74,9 +74,6 @@ func TestUpdate(t *testing.T) {
 	)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if affectedRows != 1 {
-		t.Fatal("Expected affected rows to be 1")
 	}
 
 	cmpToDBState([]models.Todo{

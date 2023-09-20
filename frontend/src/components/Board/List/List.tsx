@@ -1,7 +1,6 @@
 import { DragEvent, DragEventHandler } from "react";
 import { Item } from "../Item";
-import { getHighestIdonBoard } from "./utils/list";
-import { Todo } from "@/app/page";
+import { createTodo, updateTodo, Todo } from "./utils/todo";
 
 const handleDrop = (event: DragEvent<HTMLUListElement>, setItems) => {
   const positionOrigin = +event.dataTransfer.getData("positionItem");
@@ -17,14 +16,14 @@ const handleDrop = (event: DragEvent<HTMLUListElement>, setItems) => {
   // console.log("positionOriginList", positionOriginList);
 
   setItems((items) => {
-    const newItems = [...items];
-    const removedItem = newItems[positionOriginList].splice(
+    const reorderedItems = [...items];
+    const removedItem = reorderedItems[positionOriginList].splice(
       positionOrigin,
       1
     )[0];
     // Remove item from origin and insert it in the target.
-    newItems[positionTargetList].splice(positionTarget, 0, removedItem);
-    return newItems;
+    reorderedItems[positionTargetList].splice(positionTarget, 0, removedItem);
+    return reorderedItems;
   });
 };
 
@@ -32,23 +31,23 @@ const handleDragOver: DragEventHandler = (event: DragEvent) => {
   event.preventDefault();
 };
 
-const handleOnClick = (event, positionList, setBoard) => {
+const handleOnClick = (event, listId, setBoard) => {
   setBoard((board) => {
     const newBoard = [...board];
-    const newId = getHighestIdonBoard(board) + 1;
-    newBoard[positionList].push({ id: newId, name: `Item ${newId + 1}` });
+    const newTodo = createTodo({ name: "", listId: listId, positionId: 0 });
+    newBoard[listId].push(newTodo);
     return newBoard;
   });
 };
 
-const handleItemTextChange = (event, positionItem, positionList, setBoard) => {
+const handleItemTextChange = async (event, item, setBoard) => {
   const newText = event.target.value;
-
   setBoard((board) => {
     const newBoard = [...board];
-    newBoard[positionList][positionItem].name = newText;
+    item.name = newText;
     return newBoard;
   });
+  updateTodo(item);
 };
 
 type ListProps = {
@@ -59,34 +58,26 @@ type ListProps = {
   selection: { x: number; y: number };
 };
 
-export const List = ({
-  positionList,
-  listItems,
-  board,
-  setBoard,
-  selection,
-}) => {
+export const List = ({ listItems, setBoard, selection }) => {
+  const listId = listItems[0].listId;
+  const sortedListItems = listItems.sort((a, b) => a.positionId - b.positionId);
   return (
     <ul
       className={`m-10`}
       onDrop={(event) => handleDrop(event, setBoard)}
       onDragOver={handleDragOver}
     >
-      {listItems.map((item, index) => (
+      {sortedListItems.map((item: Todo) => (
         <Item
-          text={item.name}
+          listItem={item}
           key={item.id}
-          positionItem={index}
-          positionList={positionList}
-          onChange={(event) =>
-            handleItemTextChange(event, index, positionList, setBoard)
+          onChange={(event: Event) => handleItemTextChange(event, item, setBoard)}
+          selected={
+            selection.x == item.listId && selection.y == item.positionId
           }
-          selected={selection.x == positionList && selection.y == index}
-        >
-          {item.name}
-        </Item>
+        ></Item>
       ))}
-      <button onClick={(event) => handleOnClick(event, positionList, setBoard)}>
+      <button onClick={(event) => handleOnClick(event, listId, setBoard)}>
         Add item
       </button>
     </ul>

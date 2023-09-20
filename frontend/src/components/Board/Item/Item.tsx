@@ -1,29 +1,29 @@
 "use client";
 
-import { useState } from "react";
-
-const handleDragStart = (e, positionItem, positionList) => {
-  event.dataTransfer.setData("positionItem", positionItem);
-  event.dataTransfer.setData("positionList", positionList);
+const handleDragStart = (event, positionId, listId) => {
+  event.dataTransfer.setData("positionItem", positionId);
+  event.dataTransfer.setData("positionList", listId);
 };
 
-export const Item = ({ text, positionItem, positionList, onChange, selected }) => {
+export const Item = ({ listItem, onChange, selected }) => {
   return (
     <li
       draggable
-      onDragStart={(e) => handleDragStart(e, positionItem, positionList)}
+      onDragStart={(e) =>
+        handleDragStart(e, listItem.positionId, listItem.listId)
+      }
       className={`p-5 border-2`}
-      data-position-item={positionItem}
-      data-position-list={positionList}
+      data-position-item={listItem.positionId}
+      data-position-list={listItem.listId}
       style={{ backgroundColor: selected ? "red" : "white" }}
     >
       <input
         type="text"
-        value={text}
+        value={listItem.name}
         onChange={onChange}
         // @todo: Find another solution
-        data-position-item={positionItem}
-        data-position-list={positionList}
+        data-position-item={listItem.positionId}
+        data-position-list={listItem.listId}
       />
     </li>
   );
