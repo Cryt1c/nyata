@@ -33,7 +33,7 @@ func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	enableCors(&w)
+	setCorsHeaders(&w)
 
 	todos, err := env.todos.GetTodos()
 	if err != nil {
@@ -47,11 +47,15 @@ func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
+	setCorsHeaders(&w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	if r.Method != http.MethodPost && r.Method != http.MethodPut {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	enableCors(&w)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -114,6 +118,8 @@ func (env *Env) updateTodoHandler(w http.ResponseWriter, todo models.Todo) (mode
 	return todo, nil
 }
 
-func enableCors(w *http.ResponseWriter) {
+func setCorsHeaders(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }

@@ -30,11 +30,13 @@ export const Board = ({ items }: BoardProps) => {
   return (
     <div className={`flex justify-center`}>
       {Array.from({ length: listAmount }).map((_, index) => {
-        const listItems: Todo[] = board.filter((item) => item.listId === index);
+        const thisListItems: Todo[] = board.filter(
+          (item) => item.listId === index
+        );
         return (
           <List
             key={index}
-            listItems={listItems}
+            items={thisListItems}
             setBoard={setBoard}
             selection={selection}
           />

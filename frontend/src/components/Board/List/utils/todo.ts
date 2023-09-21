@@ -1,6 +1,7 @@
 export type Todo = {
-  id: number;
+  id?: number;
   name: string;
+  completed: boolean;
   listId: number;
   positionId: number;
 };
@@ -29,7 +30,7 @@ export const createTodo = async (newTodo: Todo): Promise<Todo> => {
     body: JSON.stringify(newTodo),
   });
 
-  if (!response.ok || response.status !== 200) {
+  if (!response.ok || response.status !== 201) {
     throw new Error("Error creating todo");
   }
 
@@ -39,7 +40,7 @@ export const createTodo = async (newTodo: Todo): Promise<Todo> => {
 
 export const updateTodo = async (updatedTodo: Todo): Promise<Todo> => {
   const response = await fetch("http://localhost:8080/todo", {
-    method: "POST",
+    method: "PUT",
     body: JSON.stringify(updatedTodo),
   });
 
@@ -48,5 +49,6 @@ export const updateTodo = async (updatedTodo: Todo): Promise<Todo> => {
   }
 
   const updatedTodoResult = await response.json();
+  console.log(updatedTodoResult);
   return updatedTodoResult;
 };

@@ -1,5 +1,5 @@
 import { Board } from "@/components/Board";
-import { getTodos } from "@/components/Board/List/utils/list";
+import { getTodos } from "@/components/Board/List/utils/todo";
 
 const Page = async () => {
   let items = await getTodos();

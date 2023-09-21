@@ -1,8 +1,8 @@
 "use client";
 
 const handleDragStart = (event, positionId, listId) => {
-  event.dataTransfer.setData("positionItem", positionId);
-  event.dataTransfer.setData("positionList", listId);
+  event.dataTransfer.setData("positionId", positionId);
+  event.dataTransfer.setData("listId", listId);
 };
 
 export const Item = ({ listItem, onChange, selected }) => {
@@ -13,8 +13,8 @@ export const Item = ({ listItem, onChange, selected }) => {
         handleDragStart(e, listItem.positionId, listItem.listId)
       }
       className={`p-5 border-2`}
-      data-position-item={listItem.positionId}
-      data-position-list={listItem.listId}
+      data-position-id={listItem.positionId}
+      data-list-id={listItem.listId}
       style={{ backgroundColor: selected ? "red" : "white" }}
     >
       <input
@@ -22,8 +22,8 @@ export const Item = ({ listItem, onChange, selected }) => {
         value={listItem.name}
         onChange={onChange}
         // @todo: Find another solution
-        data-position-item={listItem.positionId}
-        data-position-list={listItem.listId}
+        data-position-id={listItem.positionId}
+        data-list-id={listItem.listId}
       />
     </li>
   );
