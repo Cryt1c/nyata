@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type Env struct {
@@ -23,12 +25,15 @@ func main() {
 	env := &Env{todos: todosDB}
 	defer env.todos.DB.Close()
 
-	http.HandleFunc("/todos", env.todoHandler)
-	http.HandleFunc("/todo", env.todosHandler)
+	r := mux.NewRouter()
+	r.HandleFunc("/todos", env.todosHandler).Methods(http.MethodGet)
+	r.HandleFunc("/todo", env.todoHandler).Methods(http.MethodPost, http.MethodPut, http.MethodOptions)
+	r.Use(mux.CORSMethodMiddleware(r))
+	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
 }
 
-func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
+func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -46,7 +51,7 @@ func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(json))
 }
 
-func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
+func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 	setCorsHeaders(&w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
@@ -120,6 +125,4 @@ func (env *Env) updateTodoHandler(w http.ResponseWriter, todo models.Todo) (mode
 
 func setCorsHeaders(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-	(*w).Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-	(*w).Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
