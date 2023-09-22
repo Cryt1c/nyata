@@ -36,27 +36,43 @@ func run(m *testing.M) (code int, err error) {
 }
 
 func TestInsert(t *testing.T) {
-	id, err := todosDb.InsertTodo(
+	insertedTodo1, err := todosDb.InsertTodo(
 		models.Todo{
-			Name:       "Test Todo",
-			Completed:  false,
-			PositionId: 1,
-			ListId:     1,
+			Name:      "Test Todo",
+			Completed: false,
+			ListId:    1,
 		},
 	)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if id != 1 {
-		t.Fatalf("Expected id to be 1, but was %v", id)
+	t.Log(insertedTodo1)
+
+	insertedTodo2, err := todosDb.InsertTodo(
+		models.Todo{
+			Name:      "Test Todo",
+			Completed: false,
+			ListId:    1,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
 	}
+	t.Log(insertedTodo2)
 
 	cmpToDBState([]models.Todo{
 		{
 			Id:         1,
 			Name:       "Test Todo",
 			Completed:  false,
-			PositionId: 1,
+			PositionId: 10,
+			ListId:     1,
+		},
+		{
+			Id:         2,
+			Name:       "Test Todo",
+			Completed:  false,
+			PositionId: 20,
 			ListId:     1,
 		},
 	}, t)
@@ -84,6 +100,13 @@ func TestUpdate(t *testing.T) {
 			PositionId: 2,
 			ListId:     2,
 		},
+		{
+			Id:         2,
+			Name:       "Test Todo",
+			Completed:  false,
+			PositionId: 20,
+			ListId:     1,
+		},
 	}, t)
 }
 
@@ -96,7 +119,15 @@ func TestDeletion(t *testing.T) {
 		t.Fatal("Expected affected rows to be 1")
 	}
 
-	cmpToDBState([]models.Todo{}, t)
+	cmpToDBState([]models.Todo{
+		{
+			Id:         2,
+			Name:       "Test Todo",
+			Completed:  false,
+			PositionId: 20,
+			ListId:     1,
+		},
+	}, t)
 }
 
 func cmpToDBState(expected []models.Todo, t *testing.T) {

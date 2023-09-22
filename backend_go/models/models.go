@@ -53,26 +53,48 @@ func (m *TodosDB) GetTodos() ([]Todo, error) {
 	return todos, err
 }
 
-func (m *TodosDB) InsertTodo(todo Todo) (int64, error) {
+func (m *TodosDB) InsertTodo(todo Todo) (Todo, error) {
 	result, err := m.DB.Exec(
-		"INSERT INTO todos(name, completed, position_id, list_id) VALUES(?, ?, ?, ?)",
+		`INSERT INTO todos(name, completed, position_id, list_id) 
+		 VALUES(?, ?, (SELECT COALESCE(MAX(position_id), 0) + 10 FROM todos WHERE list_id = ?), ?)
+		`,
 		todo.Name,
 		todo.Completed,
-		todo.PositionId,
+		todo.ListId,
 		todo.ListId,
 	)
 	if err != nil {
 		log.Println("Error inserting todo")
 		log.Println(err)
-		return 0, err
+		return Todo{}, err
 	}
+
 	id, err := result.LastInsertId()
 	if err != nil {
 		log.Println("Error retrieving last insert id")
 		log.Println(err)
-		return 0, err
+		return Todo{}, err
 	}
-	return id, nil
+
+	rows, err := m.DB.Query("SELECT * FROM todos WHERE id = ?", id)
+	if err != nil {
+		return Todo{}, fmt.Errorf("Unable to get values: %w", err)
+	}
+	defer rows.Close()
+
+	rows.Next()
+	var newTodo Todo
+	err = rows.Scan(
+		&newTodo.Id,
+		&newTodo.Name,
+		&newTodo.Completed,
+		&newTodo.PositionId,
+		&newTodo.ListId,
+	)
+	if err != nil {
+		return Todo{}, err
+	}
+	return newTodo, nil
 }
 
 func (m *TodosDB) DeleteTodoById(id int64) (int64, error) {
