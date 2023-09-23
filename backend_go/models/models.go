@@ -22,6 +22,11 @@ type Todo struct {
 	ListId     int64  `json:"listId"`
 }
 
+type Reorder struct {
+	Origin Todo `json:"origin"`
+	Target Todo `json:"target"`
+}
+
 type List struct {
 	Id    int64  `json:"id"`
 	Name  string `json:"name"`
@@ -137,6 +142,45 @@ func (m *TodosDB) UpdateTodo(todo Todo) (*Todo, error) {
 	}
 
 	return &todo, nil
+}
+
+func (m *TodosDB) ReorderTodos(reorder Reorder) error {
+	origin := reorder.Origin
+	target := reorder.Target
+
+	// Load todo after target
+	rows, err := m.DB.Query("SELECT * FROM todos WHERE position_id > ? AND list_id = ? ORDER BY position_id ASC LIMIT 1", target.PositionId, target.ListId)
+	if err != nil {
+		return fmt.Errorf("Unable to get values: %w", err)
+	}
+
+	var afterTarget Todo
+	rows.Next()
+	err = rows.Scan(
+		&afterTarget.Id,
+		&afterTarget.Name,
+		&afterTarget.Completed,
+		&afterTarget.PositionId,
+		&afterTarget.ListId,
+	)
+	rows.Close()
+	if err != nil {
+		return err
+	}
+
+	calculatedTargetPositionId := afterTarget.PositionId - target.PositionId/2
+	if calculatedTargetPositionId == target.PositionId {
+		fmt.Println("calculatedTargetPositionId == target.PositionId")
+		// Reorder all todos.
+	}
+	origin.PositionId = calculatedTargetPositionId
+	origin.ListId = target.ListId
+
+	_, err = m.UpdateTodo(origin)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *TodosDB) GetLists() ([]List, error) {
