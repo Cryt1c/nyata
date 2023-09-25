@@ -148,7 +148,11 @@ func (m *TodosDB) ReorderTodos(reorder Reorder) error {
 	origin := reorder.Origin
 	target := reorder.Target
 
-	// Load todo after target
+	if target.PositionId == origin.PositionId {
+		fmt.Println("target.PositionId == origin.PositionId")
+		return nil
+	}
+
 	rows, err := m.DB.Query("SELECT * FROM todos WHERE position_id > ? AND list_id = ? ORDER BY position_id ASC LIMIT 1", target.PositionId, target.ListId)
 	if err != nil {
 		return fmt.Errorf("Unable to get values: %w", err)
@@ -168,19 +172,39 @@ func (m *TodosDB) ReorderTodos(reorder Reorder) error {
 		return err
 	}
 
-	calculatedTargetPositionId := afterTarget.PositionId - target.PositionId/2
+	calculatedTargetPositionId := (afterTarget.PositionId - target.PositionId) / 2
 	if calculatedTargetPositionId == target.PositionId {
 		fmt.Println("calculatedTargetPositionId == target.PositionId")
-		// Reorder all todos.
+		m.ResetListOrder(target.ListId)
+		m.ReorderTodos(Reorder{origin, target})
+		return nil
 	}
-	origin.PositionId = calculatedTargetPositionId
-	origin.ListId = target.ListId
 
-	_, err = m.UpdateTodo(origin)
+	_, err = m.DB.Exec("UPDATE todos SET position_id = ?, list_id = ? WHERE id = ?", calculatedTargetPositionId, target.ListId, origin.Id)
 	if err != nil {
-		return err
+		log.Printf("Error updating todo with ID %d: %v", origin.Id, err)
+		return fmt.Errorf("Failed to update todo with ID %d: %w", origin.Id, err)
 	}
 	return nil
+}
+
+func (m *TodosDB) ResetListOrder(listId int64) (int64, error) {
+	result, err := m.DB.Exec(`UPDATE todos
+SET position_id = updated.new_position
+FROM (
+    SELECT id, (ROW_NUMBER() OVER (ORDER BY position_id) - 1) * 10 AS new_position
+    FROM todos 
+    WHERE list_id = ?
+) AS updated
+WHERE todos.id = updated.id AND todos.list_id = ?;`, listId, listId)
+	if err != nil {
+		return 0, err
+	}
+	affectedRows, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return affectedRows, nil
 }
 
 func (m *TodosDB) GetLists() ([]List, error) {
