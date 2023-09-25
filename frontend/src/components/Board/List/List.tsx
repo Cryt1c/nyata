@@ -53,12 +53,11 @@ const handleDragOver: DragEventHandler = (event: DragEvent) => {
   event.preventDefault();
 };
 
-const handleOnClick = async (listId: number, positionId: number, setBoard) => {
+const handleOnClick = async (listId: number, setBoard) => {
   const newTodo = await createTodo({
     name: "",
     completed: false,
     listId: listId,
-    positionId: positionId + 1,
   });
   setBoard((board: Todo[]) => {
     const newBoard = [...board, newTodo];
@@ -88,7 +87,6 @@ type ListProps = {
 
 export const List = ({ items, setBoard, selection }: ListProps) => {
   const listId = items[0]?.listId || 0;
-  const lastPositionId = items[items.length - 1]?.positionId || 0;
   const sortedListItems = items.sort((a, b) => a.positionId - b.positionId);
   return (
     <ul
@@ -108,9 +106,7 @@ export const List = ({ items, setBoard, selection }: ListProps) => {
           }
         ></Item>
       ))}
-      <button onClick={() => handleOnClick(listId, lastPositionId, setBoard)}>
-        Add item
-      </button>
+      <button onClick={() => handleOnClick(listId, setBoard)}>Add item</button>
     </ul>
   );
 };

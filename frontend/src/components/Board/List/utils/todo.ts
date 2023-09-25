@@ -3,7 +3,7 @@ export type Todo = {
   name: string;
   completed: boolean;
   listId: number;
-  positionId: number;
+  positionId?: number;
 };
 
 export const getTodos = async (): Promise<Todo[]> => {
