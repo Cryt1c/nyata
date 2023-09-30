@@ -36,7 +36,7 @@ func main() {
 }
 
 func (env *Env) reorderHandler(w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(&w)
+	setHeaders(&w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -56,22 +56,9 @@ func (env *Env) reorderHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = env.todos.ReorderTodos(reorder)
+	todos, err := env.todos.ReorderTodos(reorder)
 	if err != nil {
 		http.Error(w, "Error reordering todos", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(&w)
-
-	todos, err := env.todos.GetTodos()
-	if err != nil {
-		log.Println("Error getting todos")
-		log.Println(err)
 		return
 	}
 
@@ -79,8 +66,21 @@ func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(json))
 }
 
+func (env *Env) todosHandler(w http.ResponseWriter, r *http.Request) {
+	setHeaders(&w)
+
+	todos, err := env.todos.GetTodos(models.GetOptions{Sorted: true})
+	if err != nil {
+		log.Println("Error getting todos")
+		log.Println(err)
+		return
+	}
+	json, err := json.Marshal(todos)
+	w.Write([]byte(json))
+}
+
 func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
-	setCorsHeaders(&w)
+	setHeaders(&w)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -146,6 +146,7 @@ func (env *Env) updateTodoHandler(w http.ResponseWriter, todo models.Todo) (mode
 	return todo, nil
 }
 
-func setCorsHeaders(w *http.ResponseWriter) {
+func setHeaders(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	(*w).Header().Set("Content-Type", "application/json")
 }

@@ -173,15 +173,13 @@ func TestReorder(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	todos, _ := todosDb.GetTodos()
+	todos, _ := todosDb.GetTodos(models.GetOptions{Sorted: true})
 	t.Log(todos)
 
 	_, err = todosDb.ResetListOrder(1)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	todos, _ = todosDb.GetTodos()
 	t.Log(todos)
 
 	cmpToDBState([]models.Todo{
@@ -213,12 +211,10 @@ func TestReorder(t *testing.T) {
 		ListId:     1,
 	}
 
-	err = todosDb.ReorderTodos(models.Reorder{origin, target})
+	todos, err = todosDb.ReorderTodos(models.Reorder{origin, target})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	todos, _ = todosDb.GetTodos()
 	t.Log(todos)
 
 	cmpToDBState([]models.Todo{
@@ -256,13 +252,10 @@ func TestReorder(t *testing.T) {
 		ListId:     1,
 	}
 
-	err = todosDb.ReorderTodos(models.Reorder{origin, target})
-
+	todos, err = todosDb.ReorderTodos(models.Reorder{origin, target})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	todos, _ = todosDb.GetTodos()
 	t.Log(todos)
 
 	origin = models.Todo{
@@ -276,13 +269,10 @@ func TestReorder(t *testing.T) {
 		ListId:     1,
 	}
 
-	err = todosDb.ReorderTodos(models.Reorder{origin, target})
-
+	todos, err = todosDb.ReorderTodos(models.Reorder{origin, target})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	todos, _ = todosDb.GetTodos()
 	t.Log(todos)
 
 	origin = models.Todo{
@@ -296,21 +286,18 @@ func TestReorder(t *testing.T) {
 		ListId:     1,
 	}
 
-	todos, _ = todosDb.GetTodos()
+	todos, _ = todosDb.GetTodos(models.GetOptions{Sorted: true})
 	t.Log(todos)
 
-	err = todosDb.ReorderTodos(models.Reorder{origin, target})
-
+	todos, err = todosDb.ReorderTodos(models.Reorder{origin, target})
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	todos, _ = todosDb.GetTodos()
 	t.Log(todos)
 }
 
 func cmpToDBState(expected []models.Todo, t *testing.T) {
-	actual, err := todosDb.GetTodos()
+	actual, err := todosDb.GetTodos(models.GetOptions{Sorted: true})
 	if err != nil {
 		t.Fatal(err)
 	}

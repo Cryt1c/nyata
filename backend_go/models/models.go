@@ -33,9 +33,18 @@ type List struct {
 	Todos []Todo `json:"todos"`
 }
 
-func (m *TodosDB) GetTodos() ([]Todo, error) {
+type GetOptions struct {
+	Sorted bool
+}
+
+func (m *TodosDB) GetTodos(options GetOptions) ([]Todo, error) {
+	query := "SELECT * FROM todos"
+	if options.Sorted {
+		query += " ORDER BY position_id ASC"
+	}
+
 	var todos []Todo
-	rows, err := m.DB.Query("SELECT * FROM todos")
+	rows, err := m.DB.Query(query)
 	if err != nil {
 		return todos, fmt.Errorf("Unable to get values: %w", err)
 	}
@@ -81,24 +90,13 @@ func (m *TodosDB) InsertTodo(todo Todo) (Todo, error) {
 		return Todo{}, err
 	}
 
-	rows, err := m.DB.Query("SELECT * FROM todos WHERE id = ?", id)
+	newTodo, err := m.GetTodoById(id)
 	if err != nil {
-		return Todo{}, fmt.Errorf("Unable to get values: %w", err)
-	}
-	defer rows.Close()
-
-	rows.Next()
-	var newTodo Todo
-	err = rows.Scan(
-		&newTodo.Id,
-		&newTodo.Name,
-		&newTodo.Completed,
-		&newTodo.PositionId,
-		&newTodo.ListId,
-	)
-	if err != nil {
+		log.Println("Error retrieving todo by id")
+		log.Println(err)
 		return Todo{}, err
 	}
+
 	return newTodo, nil
 }
 
@@ -166,24 +164,24 @@ func (m *TodosDB) UpdateTodo(todo Todo) (*Todo, error) {
 	return &todo, nil
 }
 
-func (m *TodosDB) ReorderTodos(reorder Reorder) error {
+func (m *TodosDB) ReorderTodos(reorder Reorder) ([]Todo, error) {
 	origin, err := m.GetTodoById(reorder.Origin.Id)
 	if err != nil {
-		return err
+		return []Todo{}, err
 	}
 	target, err := m.GetTodoById(reorder.Target.Id)
 	if err != nil {
-		return err
+		return []Todo{}, err
 	}
 
 	if target.PositionId == origin.PositionId {
 		fmt.Println("target.PositionId == origin.PositionId")
-		return nil
+		return []Todo{}, nil
 	}
 
 	rows, err := m.DB.Query("SELECT * FROM todos WHERE position_id > ? AND list_id = ? ORDER BY position_id ASC LIMIT 1", target.PositionId, target.ListId)
 	if err != nil {
-		return fmt.Errorf("Unable to get values: %w", err)
+		return []Todo{}, fmt.Errorf("Unable to get values: %w", err)
 	}
 
 	var afterTarget Todo
@@ -197,7 +195,7 @@ func (m *TodosDB) ReorderTodos(reorder Reorder) error {
 	)
 	rows.Close()
 	if err != nil {
-		return err
+		return []Todo{}, err
 	}
 
 	calculatedTargetPositionId := (afterTarget.PositionId - target.PositionId) / 2
@@ -205,15 +203,21 @@ func (m *TodosDB) ReorderTodos(reorder Reorder) error {
 		fmt.Println("calculatedTargetPositionId == target.PositionId")
 		m.ResetListOrder(target.ListId)
 		m.ReorderTodos(Reorder{origin, target})
-		return nil
+		return []Todo{}, nil
 	}
 
 	_, err = m.DB.Exec("UPDATE todos SET position_id = ?, list_id = ? WHERE id = ?", calculatedTargetPositionId, target.ListId, origin.Id)
 	if err != nil {
 		log.Printf("Error updating todo with ID %d: %v", origin.Id, err)
-		return fmt.Errorf("Failed to update todo with ID %d: %w", origin.Id, err)
+		return []Todo{}, fmt.Errorf("Failed to update todo with ID %d: %w", origin.Id, err)
 	}
-	return nil
+
+	todos, err := m.GetTodos(GetOptions{Sorted: true})
+	if err != nil {
+		return []Todo{}, err
+	}
+
+	return todos, nil
 }
 
 func (m *TodosDB) ResetListOrder(listId int64) (int64, error) {
