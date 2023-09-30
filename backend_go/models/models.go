@@ -123,6 +123,28 @@ func (m *TodosDB) DeleteTodoById(id int64) (int64, error) {
 	return rowsAffected, nil
 }
 
+func (m *TodosDB) GetTodoById(id int64) (Todo, error) {
+	rows, err := m.DB.Query("SELECT * FROM todos WHERE id = ?", id)
+	if err != nil {
+		return Todo{}, fmt.Errorf("Unable to get values: %w", err)
+	}
+	defer rows.Close()
+
+	rows.Next()
+	var todo Todo
+	err = rows.Scan(
+		&todo.Id,
+		&todo.Name,
+		&todo.Completed,
+		&todo.PositionId,
+		&todo.ListId,
+	)
+	if err != nil {
+		return todo, err
+	}
+	return todo, err
+}
+
 func (m *TodosDB) UpdateTodo(todo Todo) (*Todo, error) {
 	result, err := m.DB.Exec("UPDATE todos SET name = ?, completed = ?, position_id = ?, list_id = ? WHERE id = ?", todo.Name, todo.Completed, todo.PositionId, todo.ListId, todo.Id)
 	if err != nil {
@@ -145,8 +167,14 @@ func (m *TodosDB) UpdateTodo(todo Todo) (*Todo, error) {
 }
 
 func (m *TodosDB) ReorderTodos(reorder Reorder) error {
-	origin := reorder.Origin
-	target := reorder.Target
+	origin, err := m.GetTodoById(reorder.Origin.Id)
+	if err != nil {
+		return err
+	}
+	target, err := m.GetTodoById(reorder.Target.Id)
+	if err != nil {
+		return err
+	}
 
 	if target.PositionId == origin.PositionId {
 		fmt.Println("target.PositionId == origin.PositionId")

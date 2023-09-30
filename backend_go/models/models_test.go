@@ -128,6 +128,29 @@ func TestDeletion(t *testing.T) {
 	}, t)
 }
 
+func TestGetByID(t *testing.T) {
+	todo, err := todosDb.GetTodoById(2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if todo.Id != 2 {
+		t.Fatal("Expected todo id to be 2")
+	}
+	if todo.Name != "Test Todo" {
+		t.Fatal("Expected todo name to be 'Test Todo'")
+	}
+	if todo.Completed != false {
+		t.Fatal("Expected todo completed to be false")
+	}
+	if todo.PositionId != 20 {
+		t.Fatal("Expected todo position to be 20")
+	}
+	if todo.ListId != 1 {
+		t.Fatal("Expected todo list id to be 1")
+	}
+}
+
 func TestReorder(t *testing.T) {
 	_, err := todosDb.InsertTodo(
 		models.Todo{
