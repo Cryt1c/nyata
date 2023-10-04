@@ -29,6 +29,7 @@ func main() {
 	r.HandleFunc("/todos", env.todosHandler).Methods(http.MethodGet)
 	r.HandleFunc("/todo", env.todoHandler).Methods(http.MethodPost, http.MethodPut, http.MethodOptions)
 	r.HandleFunc("/reorder", env.reorderHandler).Methods(http.MethodPut, http.MethodOptions)
+	r.HandleFunc("/reset", env.resetHandler).Methods(http.MethodPut, http.MethodOptions)
 
 	r.Use(mux.CORSMethodMiddleware(r))
 	http.Handle("/", r)
@@ -58,11 +59,29 @@ func (env *Env) reorderHandler(w http.ResponseWriter, r *http.Request) {
 
 	todos, err := env.todos.ReorderTodos(reorder)
 	if err != nil {
+		log.Println("Error reordering todos %v", err)
 		http.Error(w, "Error reordering todos", http.StatusInternalServerError)
 		return
 	}
 
 	json, err := json.Marshal(todos)
+	w.Write([]byte(json))
+}
+
+func (env *Env) resetHandler(w http.ResponseWriter, r *http.Request) {
+	setHeaders(&w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	affectedRows, err := env.todos.ResetListOrder(2)
+	if err != nil {
+		http.Error(w, "Error reordering todos", http.StatusInternalServerError)
+		return
+	}
+
+	json, err := json.Marshal(affectedRows)
 	w.Write([]byte(json))
 }
 

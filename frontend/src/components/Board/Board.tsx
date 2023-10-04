@@ -37,6 +37,7 @@ export const Board = ({ items }: BoardProps) => {
           <List
             key={index}
             items={thisListItems}
+            board={board}
             setBoard={setBoard}
             selection={selection}
           />

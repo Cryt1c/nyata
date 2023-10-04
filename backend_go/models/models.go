@@ -176,34 +176,46 @@ func (m *TodosDB) ReorderTodos(reorder Reorder) ([]Todo, error) {
 
 	if target.PositionId == origin.PositionId {
 		fmt.Println("target.PositionId == origin.PositionId")
-		return []Todo{}, nil
+		todos, err := m.GetTodos(GetOptions{Sorted: true})
+		if err != nil {
+			return []Todo{}, err
+		}
+		return todos, nil
 	}
 
 	rows, err := m.DB.Query("SELECT * FROM todos WHERE position_id > ? AND list_id = ? ORDER BY position_id ASC LIMIT 1", target.PositionId, target.ListId)
 	if err != nil {
 		return []Todo{}, fmt.Errorf("Unable to get values: %w", err)
 	}
+	defer rows.Close()
 
-	var afterTarget Todo
-	rows.Next()
-	err = rows.Scan(
-		&afterTarget.Id,
-		&afterTarget.Name,
-		&afterTarget.Completed,
-		&afterTarget.PositionId,
-		&afterTarget.ListId,
-	)
-	rows.Close()
-	if err != nil {
-		return []Todo{}, err
-	}
-
-	calculatedTargetPositionId := (afterTarget.PositionId - target.PositionId) / 2
-	if calculatedTargetPositionId == target.PositionId {
-		fmt.Println("calculatedTargetPositionId == target.PositionId")
-		m.ResetListOrder(target.ListId)
-		m.ReorderTodos(Reorder{origin, target})
-		return []Todo{}, nil
+	var calculatedTargetPositionId int64
+	if rows.Next() {
+		var afterTarget Todo
+		err = rows.Scan(
+			&afterTarget.Id,
+			&afterTarget.Name,
+			&afterTarget.Completed,
+			&afterTarget.PositionId,
+			&afterTarget.ListId,
+		)
+		rows.Close()
+		if err != nil {
+			return []Todo{}, fmt.Errorf("Error scanning rows: %w", err)
+		}
+		calculatedTargetPositionId = target.PositionId + (afterTarget.PositionId-target.PositionId)/2
+		if calculatedTargetPositionId == target.PositionId {
+			fmt.Println("calculatedTargetPositionId == target.PositionId")
+			m.ResetListOrder(target.ListId)
+			m.ReorderTodos(Reorder{origin, target})
+			todos, err := m.GetTodos(GetOptions{Sorted: true})
+			if err != nil {
+				return []Todo{}, err
+			}
+			return todos, nil
+		}
+	} else {
+		calculatedTargetPositionId = target.PositionId + 10
 	}
 
 	_, err = m.DB.Exec("UPDATE todos SET position_id = ?, list_id = ? WHERE id = ?", calculatedTargetPositionId, target.ListId, origin.Id)

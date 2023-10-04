@@ -52,3 +52,18 @@ export const updateTodo = async (updatedTodo: Todo): Promise<Todo> => {
   console.log(updatedTodoResult);
   return updatedTodoResult;
 };
+
+export const reorderTodos = async (origin: Todo, target: Todo) => {
+  const response = await fetch("http://localhost:8080/reorder", {
+    method: "PUT",
+    body: JSON.stringify({ origin, target }),
+  });
+
+  if(!response.ok || response.status !== 200) {
+    throw new Error("Error reordering todos");
+  }
+  const reorderedTodos = await response.json();
+  console.log(reorderedTodos);
+  return reorderedTodos;
+}
+
