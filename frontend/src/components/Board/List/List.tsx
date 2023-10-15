@@ -104,22 +104,21 @@ type ListProps = {
 export const List = ({ items, board, setBoard, selection }: ListProps) => {
   const listId = items[0]?.listId || 0;
   const sortedListItems = items.sort((a, b) => a.positionId - b.positionId);
+  console.log(selection);
   return (
     <ul
       className={`m-10`}
       onDrop={(event) => handleDrop(event, board, setBoard)}
       onDragOver={handleDragOver}
     >
-      {sortedListItems.map((item: Todo) => (
+      {sortedListItems.map((item: Todo, index) => (
         <Item
           listItem={item}
           key={item.id}
           onChange={(event: Event) =>
             handleItemTextChange(event, item, setBoard)
           }
-          selected={
-            selection.x == item.listId && selection.y == item.positionId
-          }
+          selected={selection.x == listId && selection.y == index}
         ></Item>
       ))}
       <button onClick={() => handleOnClick(listId, setBoard)}>Add item</button>

@@ -12,7 +12,14 @@ export const Board = ({ items }: BoardProps) => {
   console.log("items", items);
   const [board, setBoard] = useState<Todo[]>(items);
   const boardLimits = useMemo(() => {
-    return board.map((list) => list.length);
+    return board.reduce((acc: number[], item) => {
+      if (acc[item.listId]) {
+        acc[item.listId] = acc[item.listId] + 1;
+      } else {
+        acc[item.listId] = 1;
+      }
+      return acc;
+    }, []);
   }, [board]);
   const listAmount: number = useMemo(() => {
     return (
