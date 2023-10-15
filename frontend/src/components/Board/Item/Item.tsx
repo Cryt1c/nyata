@@ -1,11 +1,21 @@
 "use client";
 
+import { useRef } from "react";
+
 const handleDragStart = (event, positionId, listId) => {
   event.dataTransfer.setData("positionId", positionId);
   event.dataTransfer.setData("listId", listId);
 };
 
-export const Item = ({ listItem, onChange, selected }) => {
+export const Item = ({ listItem, onChange, selected, changing }) => {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  if (changing && selected) {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }
+
   return (
     <li
       draggable
@@ -24,6 +34,7 @@ export const Item = ({ listItem, onChange, selected }) => {
         // @todo: Find another solution
         data-position-id={listItem.positionId}
         data-list-id={listItem.listId}
+        ref={inputRef}
       />
     </li>
   );

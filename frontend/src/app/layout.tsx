@@ -1,21 +1,22 @@
-import './globals.css'
-import { Inter } from 'next/font/google'
+import { BoardProvider } from "@/hooks/useSelection";
+import "./globals.css";
+import { Inter } from "next/font/google";
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: 'Not yet another todo app',
-  description: 'A sprint based todo app',
-}
+  title: "Not yet another todo app",
+  description: "A sprint based todo app",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className={inter.className}>{children}</body>
     </html>
-  )
+  );
 }

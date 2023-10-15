@@ -1,6 +1,7 @@
-import { DragEvent, DragEventHandler } from "react";
+import { DragEvent, DragEventHandler, useEffect } from "react";
 import { Item } from "../Item";
 import { createTodo, updateTodo, Todo, reorderTodos } from "./utils/todo";
+import { useSelection } from "@/hooks/useSelection";
 
 const handleDrop = async (
   event: DragEvent<HTMLUListElement>,
@@ -96,15 +97,13 @@ const handleItemTextChange = async (event, item, setBoard) => {
 
 type ListProps = {
   items: Todo[];
-  board: Todo[];
-  setBoard: (board: Todo[]) => void;
-  selection: { x: number; y: number };
 };
 
-export const List = ({ items, board, setBoard, selection }: ListProps) => {
+export const List = ({ items }: ListProps) => {
   const listId = items[0]?.listId || 0;
   const sortedListItems = items.sort((a, b) => a.positionId - b.positionId);
-  console.log(selection);
+  const { changing, selection, board, setBoard } = useSelection();
+
   return (
     <ul
       className={`m-10`}
@@ -119,6 +118,7 @@ export const List = ({ items, board, setBoard, selection }: ListProps) => {
             handleItemTextChange(event, item, setBoard)
           }
           selected={selection.x == listId && selection.y == index}
+          changing={changing}
         ></Item>
       ))}
       <button onClick={() => handleOnClick(listId, setBoard)}>Add item</button>
