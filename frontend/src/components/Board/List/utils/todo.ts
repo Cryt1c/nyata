@@ -49,7 +49,6 @@ export const updateTodo = async (updatedTodo: Todo): Promise<Todo> => {
   }
 
   const updatedTodoResult = await response.json();
-  console.log(updatedTodoResult);
   return updatedTodoResult;
 };
 
@@ -63,7 +62,6 @@ export const reorderTodos = async (origin: Todo, target: Todo) => {
     throw new Error("Error reordering todos");
   }
   const reorderedTodos = await response.json();
-  console.log(reorderedTodos);
   return reorderedTodos;
 }
 

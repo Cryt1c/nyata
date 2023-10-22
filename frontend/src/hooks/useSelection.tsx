@@ -49,6 +49,8 @@ export const BoardProvider = ({ children, items }: SelectionProviderProps) => {
   );
 };
 
+let isEventListenerAttached = false;
+
 export const useSelection = () => {
   const { selection, setSelection } = useContext(SelectionContext);
   const { changing, setChanging } = useContext(ChangingContext);
@@ -114,9 +116,15 @@ export const useSelection = () => {
   };
 
   useEffect(() => {
-    window.addEventListener("keyup", handleKeyDown);
+    if (!isEventListenerAttached) {
+      window.addEventListener("keyup", handleKeyDown);
+      isEventListenerAttached = true;
+    }
     return () => {
-      removeEventListener("keyup", handleKeyDown);
+      if (isEventListenerAttached) {
+        window.removeEventListener("keyup", handleKeyDown);
+        isEventListenerAttached = false;
+      }
     };
   }, []);
 

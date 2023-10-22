@@ -1,4 +1,3 @@
-import { BoardProvider } from "@/hooks/useSelection";
 import "./globals.css";
 import { Inter } from "next/font/google";
 

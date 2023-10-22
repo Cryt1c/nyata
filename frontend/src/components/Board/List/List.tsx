@@ -41,27 +41,6 @@ const handleDrop = async (
   const newBoard = await reorderTodos(origin, target);
   setBoard((board: Todo[]) => {
     return newBoard;
-    //   const newBoard = board.map((item: Todo) => {
-    //     if (
-    //       item.positionId === originPositionId &&
-    //       item.listId === originListId
-    //     ) {
-    //       item.positionId = targetPositionId;
-    //       item.listId = targetListId;
-    //       return item;
-    //     }
-    //     if (item.listId === targetListId && item.positionId >= targetPositionId) {
-    //       item.positionId = item.positionId + 1;
-    //       return item;
-    //     }
-    //     if (item.listId === originListId && item.positionId >= originPositionId) {
-    //       item.positionId = item.positionId - 1;
-    //       return item;
-    //     }
-    //     return item;
-    //   });
-    //   console.log("newBoard", newBoard);
-    //   return newBoard;
   });
 };
 
@@ -100,9 +79,9 @@ type ListProps = {
 };
 
 export const List = ({ items }: ListProps) => {
-  const listId = items[0]?.listId || 0;
-  const sortedListItems = items.sort((a, b) => a.positionId - b.positionId);
   const { changing, selection, board, setBoard } = useSelection();
+  const listId = items[0]?.listId || 0;
+  const sortedBoard = items.sort((a, b) => a.positionId - b.positionId);
 
   return (
     <ul
@@ -110,7 +89,7 @@ export const List = ({ items }: ListProps) => {
       onDrop={(event) => handleDrop(event, board, setBoard)}
       onDragOver={handleDragOver}
     >
-      {sortedListItems.map((item: Todo, index) => (
+      {sortedBoard.map((item: Todo, index) => (
         <Item
           listItem={item}
           key={item.id}

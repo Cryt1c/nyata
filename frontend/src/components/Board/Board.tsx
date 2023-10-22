@@ -2,31 +2,26 @@
 
 import { useMemo } from "react";
 import { List } from "./List";
-import { BoardProvider } from "@/hooks/useSelection";
 import { Todo } from "./List/utils/todo";
+import { BoardProvider, useSelection } from "@/hooks/useSelection";
 
-type BoardProps = {
-  items: Todo[];
-};
-export const Board = ({ items }: BoardProps) => {
+export const Board = () => {
+  const { board } = useSelection();
+
   const listAmount: number = useMemo(() => {
-    return (
-      items.reduce((acc, item) => {
-        return item.listId > acc ? item.listId : acc;
-      }, 0) + 1
-    );
-  }, [items]);
+    return board.reduce((acc, item) => {
+      return item.listId > acc ? item.listId : acc;
+    }, 0);
+  }, [board]);
 
   return (
     <div className={`flex justify-center`}>
-      <BoardProvider items={items}>
         {Array.from({ length: listAmount }).map((_, index) => {
-          const thisListItems: Todo[] = items.filter(
+          const thisListItems: Todo[] = board.filter(
             (item) => item.listId === index
           );
           return <List key={index} items={thisListItems} />;
         })}
-      </BoardProvider>
     </div>
   );
 };
