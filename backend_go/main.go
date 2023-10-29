@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -28,6 +29,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/todos", env.todosHandler).Methods(http.MethodGet)
 	r.HandleFunc("/todo", env.todoHandler).Methods(http.MethodPost, http.MethodPut, http.MethodOptions)
+	r.HandleFunc("/todo/{todoId}", env.todoIdHandler).Methods(http.MethodDelete, http.MethodOptions)
 	r.HandleFunc("/reorder", env.reorderHandler).Methods(http.MethodPut, http.MethodOptions)
 	r.HandleFunc("/reset", env.resetHandler).Methods(http.MethodPut, http.MethodOptions)
 
@@ -122,7 +124,7 @@ func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 	var returnedTodo models.Todo
 	switch r.Method {
 	case http.MethodPost:
-		returnedTodo, err = env.insertTodoHandler(w, todo)
+		returnedTodo, err = env.createTodoHandler(w, todo)
 		if err != nil {
 			return
 		}
@@ -141,7 +143,35 @@ func (env *Env) todoHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(returnedTodo)
 }
 
-func (env *Env) insertTodoHandler(w http.ResponseWriter, todo models.Todo) (models.Todo, error) {
+func (env *Env) todoIdHandler(w http.ResponseWriter, r *http.Request) {
+	setHeaders(&w)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	var affectedRows int64
+	switch r.Method {
+	case http.MethodDelete:
+		vars := mux.Vars(r)
+		idString := vars["todoId"]
+		todoId, _ := strconv.ParseInt(idString, 10, 64)
+		var err error
+		affectedRows, err = env.deleteTodoHandler(w, todoId)
+		if err != nil {
+			return
+		}
+	default:
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// respond with a 201 Created and the created Todo in the body
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(affectedRows)
+}
+
+func (env *Env) createTodoHandler(w http.ResponseWriter, todo models.Todo) (models.Todo, error) {
 	insertedTodo, err := env.todos.InsertTodo(todo)
 	if err != nil {
 		http.Error(w, "Error inserting todo", http.StatusBadRequest)
@@ -163,6 +193,18 @@ func (env *Env) updateTodoHandler(w http.ResponseWriter, todo models.Todo) (mode
 	log.Println("Updated todo:", todo)
 	w.WriteHeader(http.StatusOK)
 	return todo, nil
+}
+
+func (env *Env) deleteTodoHandler(w http.ResponseWriter, todoId int64) (int64, error) {
+	rowsAffected, err := env.todos.DeleteTodoById(todoId)
+	if err != nil {
+		http.Error(w, "Error deleting todo", http.StatusBadRequest)
+		return rowsAffected, err
+	}
+
+	log.Println("Deleted todo:", rowsAffected)
+	w.WriteHeader(http.StatusOK)
+	return rowsAffected, nil
 }
 
 func setHeaders(w *http.ResponseWriter) {
