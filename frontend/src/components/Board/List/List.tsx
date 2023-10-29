@@ -1,6 +1,12 @@
 import { DragEvent, DragEventHandler, useEffect } from "react";
 import { Item } from "../Item";
-import { createTodo, updateTodo, Todo, reorderTodos } from "./utils/todo";
+import {
+  createTodo,
+  updateTodo,
+  Todo,
+  reorderTodos,
+  deleteTodo,
+} from "./utils/todo";
 import { useSelection } from "@/hooks/useSelection";
 
 const handleDrop = async (
@@ -70,6 +76,16 @@ const handleItemTextChange = async (event, item, setBoard) => {
       }
       return item;
     });
+    return newBoard;
+  });
+};
+
+const handleItemDelete = async (event, item, setBoard) => {
+  const updatedItem = await deleteTodo({
+    id: item,
+  });
+  setBoard((board: Todo[]) => {
+    const newBoard = board.filter((item: Todo) => item.id !== updatedItem.id);
     return newBoard;
   });
 };

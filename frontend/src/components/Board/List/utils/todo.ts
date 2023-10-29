@@ -52,6 +52,17 @@ export const updateTodo = async (updatedTodo: Todo): Promise<Todo> => {
   return updatedTodoResult;
 };
 
+export const deleteTodo = async (deletedTodo: Todo): Promise<void> => {
+  // const response = await fetch(`http://localhost:8080/todo/${deletedTodo.id}`, {
+  //   method: "DELETE",
+  // });
+
+  console.log("deletedTodo", deletedTodo);
+  // if (!response.ok || response.status !== 200) {
+  //   throw new Error("Error deleting todo");
+  // }
+};
+
 export const reorderTodos = async (origin: Todo, target: Todo) => {
   const response = await fetch("http://localhost:8080/reorder", {
     method: "PUT",
@@ -64,4 +75,3 @@ export const reorderTodos = async (origin: Todo, target: Todo) => {
   const reorderedTodos = await response.json();
   return reorderedTodos;
 }
-

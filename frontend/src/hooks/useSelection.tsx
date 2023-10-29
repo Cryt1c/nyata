@@ -1,4 +1,4 @@
-import { Todo } from "@/components/Board/List/utils/todo";
+import { Todo, deleteTodo } from "@/components/Board/List/utils/todo";
 import {
   Dispatch,
   SetStateAction,
@@ -105,6 +105,21 @@ export const useSelection = () => {
         if (changing) return;
         setChanging(true);
         break;
+      case "x":
+        setSelection((oldSelection) => {
+          // TODO: Set correct new selection after deletion.
+          const selectedTodo = getSelectedTodo(board, oldSelection);
+          if (!selectedTodo) return;
+          deleteTodo(selectedTodo);
+          setBoard((board: Todo[]) => {
+            const newBoard = board.filter(
+              (item: Todo) => item.id !== selectedTodo.id
+            );
+            return newBoard;
+          });
+          return oldSelection;
+        });
+        break;
       case "Escape":
         setChanging(false);
         document.activeElement.blur();
@@ -129,4 +144,17 @@ export const useSelection = () => {
   }, []);
 
   return { selection, changing, board, setBoard };
+};
+
+const getSelectedTodo = (
+  board: Todo[],
+  selection: Position
+): Todo | undefined => {
+  console.log("board", board);
+  console.log("selection", selection);
+  return board
+    .filter((item) => item.listId === selection.x)
+    .sort((a, b) => {
+      return a.positionId - b.positionId;
+    })[selection.y];
 };

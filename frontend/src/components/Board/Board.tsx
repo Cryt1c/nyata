@@ -11,7 +11,7 @@ export const Board = () => {
   const listAmount: number = useMemo(() => {
     return board.reduce((acc, item) => {
       return item.listId > acc ? item.listId : acc;
-    }, 0);
+    }, 0) + 1;
   }, [board]);
 
   return (
